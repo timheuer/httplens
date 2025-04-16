@@ -1,0 +1,19 @@
+@host = http://localhost:5000
+
+### Get all weather forecasts (Controller)
+GET {{host}}/WeatherForecast
+Accept: application/json
+
+### Get weather forecast by ID (Controller)
+GET {{host}}/WeatherForecast/1
+Accept: application/json
+
+### Create new weather forecast (Controller)
+POST {{host}}/WeatherForecast
+Content-Type: application/json
+
+{
+    "date": "2025-04-16",
+    "temperatureC": 25,
+    "summary": "Warm"
+}

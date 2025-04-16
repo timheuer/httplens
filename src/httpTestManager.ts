@@ -1,6 +1,6 @@
 import * as vscode from 'vscode'
 
-function extractNormalizedPath(rawPath: string): string {
+export function extractNormalizedPath(rawPath: string): string {
 	// Remove http(s)://host, {{variable}}, or anything before first /
 	let path = rawPath
 	path = path.replace(/^https?:\/\/[^/]+/, '') // remove http(s)://host

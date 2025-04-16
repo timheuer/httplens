@@ -1,0 +1,28 @@
+# Auto detect text files and perform LF normalization
+* text=auto eol=lf
+
+# TypeScript and JavaScript files
+*.ts linguist-detectable=true
+*.js linguist-detectable=true
+*.mjs linguist-detectable=true
+
+# JSON files
+*.json text
+
+# VS Code specific files
+*.vsix binary
+*.png binary
+*.ico binary
+
+# Documentation
+*.md text diff=markdown
+
+# Package manager files
+package-lock.json text -diff
+yarn.lock text -diff
+pnpm-lock.yaml text -diff
+
+# Config files
+*.config.* text
+tsconfig.json text
+.eslintrc* text

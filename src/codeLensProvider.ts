@@ -32,7 +32,7 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 		// Find all .http files in the workspace
 		const httpFiles = await vscode.workspace.findFiles('**/*.http')
 
-		async function hasMatchingRequest(method: string, route: string): Promise<{ file?: vscode.Uri, found?: boolean }> {
+		async function hasMatchingRequest(method: string, route: string): Promise<{ file?: vscode.Uri, found: boolean }> {
 			const routePath = route.startsWith('/') ? route : `/${route}`
 			const methodUpper = method.toUpperCase()
 			for (const file of httpFiles) {
@@ -41,9 +41,20 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 					const lines = content.split(/\r?\n/)
 					for (let i = 0; i < lines.length; i++) {
 						const line = lines[i]
-						const match = line.match(/^(GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)\s+HTTP\//i)
-						if (match && match[1].toUpperCase() === methodUpper && match[2].endsWith(routePath)) {
-							return { file, found: true }
+						// Use robust matching logic as in httpTestManager.ts
+						const match = line.match(/^(GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)(?:\s|$)/i)
+						if (match && match[1].toUpperCase() === methodUpper) {
+							let matchedPath = match[2]
+							matchedPath = matchedPath.replace(/^https?:\/\/[^/]+/, '')
+							matchedPath = matchedPath.replace(/^\{\{[^}]+\}\}/, '')
+							if (!matchedPath.startsWith('/')) {
+								matchedPath = matchedPath.replace(/^[^/]+/, '')
+							}
+							matchedPath = matchedPath.replace(/\/+$/, '')
+							const expectedPath = routePath.replace(/\/+$/, '')
+							if (matchedPath === expectedPath) {
+								return { file, found: true }
+							}
 						}
 					}
 				} catch {}

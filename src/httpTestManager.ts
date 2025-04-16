@@ -70,7 +70,7 @@ export async function handleHttpTestCommand(uri: vscode.Uri, method: string, rou
 	} catch {
 		await vscode.workspace.fs.createDirectory(testFolder)
 		const host = await getHostFromLaunchSettings() || 'http://localhost:5000'
-		const httpRequest = generateHttpRequestTemplate(method, routeOrName, host)
+		const httpRequest = generateHttpRequestTemplate(method.toUpperCase(), routeOrName, host)
 		await vscode.workspace.fs.writeFile(testFile, Buffer.from(httpRequest, 'utf8'))
 		vscode.window.showTextDocument(testFile)
 	}

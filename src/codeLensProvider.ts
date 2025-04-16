@@ -32,27 +32,33 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 		// Find all .http files in the workspace
 		const httpFiles = await vscode.workspace.findFiles('**/*.http')
 
+		function extractMainRoute(path: string): string {
+			// Remove host, variables, and get the first segment (e.g. /add from /add/{num1},{num2} or /add/1,2)
+			path = path.replace(/^https?:\/\/[^/]+/, '')
+			path = path.replace(/^{\{[^}]+\}}/, '')
+			if (!path.startsWith('/')) {
+				path = path.replace(/^[^/]+/, '')
+			}
+			path = path.replace(/\/+$/, '')
+			// Get the first segment after the initial slash
+			const match = path.match(/^\/?([^/]+)/)
+			return match ? `/${match[1]}` : '/'
+		}
+
 		async function hasMatchingRequest(method: string, route: string): Promise<{ file?: vscode.Uri, found: boolean }> {
 			const routePath = route.startsWith('/') ? route : `/${route}`
 			const methodUpper = method.toUpperCase()
+			const expectedMainRoute = extractMainRoute(routePath)
 			for (const file of httpFiles) {
 				try {
 					const content = (await vscode.workspace.fs.readFile(file)).toString()
 					const lines = content.split(/\r?\n/)
 					for (let i = 0; i < lines.length; i++) {
 						const line = lines[i]
-						// Use robust matching logic as in httpTestManager.ts
 						const match = line.match(/^(GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)(?:\s|$)/i)
 						if (match && match[1].toUpperCase() === methodUpper) {
-							let matchedPath = match[2]
-							matchedPath = matchedPath.replace(/^https?:\/\/[^/]+/, '')
-							matchedPath = matchedPath.replace(/^\{\{[^}]+\}\}/, '')
-							if (!matchedPath.startsWith('/')) {
-								matchedPath = matchedPath.replace(/^[^/]+/, '')
-							}
-							matchedPath = matchedPath.replace(/\/+$/, '')
-							const expectedPath = routePath.replace(/\/+$/, '')
-							if (matchedPath === expectedPath) {
+							const matchedMainRoute = extractMainRoute(match[2])
+							if (matchedMainRoute === expectedMainRoute) {
 								return { file, found: true }
 							}
 						}

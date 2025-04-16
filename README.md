@@ -10,6 +10,8 @@ HTTPLens is a Visual Studio Code extension that enhances your C# web API develop
 - **Automatic HTTP Request Generation:** Generates a ready-to-use HTTP request template for your endpoint, using the method and route detected from your code.
 - **Seamless Navigation:** Jump directly from your C# code to the relevant HTTP test file for fast testing and iteration.
 
+![Example Navigation](https://github.com/user-attachments/assets/c5bb1807-6b12-4ad8-954d-12337cd4f6dd)
+
 ## Installation
 
 1. Install from the [Visual Studio Code Marketplace](https://marketplace.visualstudio.com/) or by searching for "HTTPLens" in the Extensions view.

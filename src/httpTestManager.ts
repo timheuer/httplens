@@ -60,17 +60,30 @@ export async function handleHttpTestCommand(uri: vscode.Uri, method: string, rou
 		} catch {}
 	}
 
+	// Group tests by controller/feature instead of per route
 	const testFolder = vscode.Uri.joinPath(vscode.workspace.workspaceFolders?.[0].uri!, 'tests', 'http')
-	const testFileName = `${method}_${routeOrName.replace(/[^a-zA-Z0-9]/g, '_')}.http`
+	// Use the first segment of the route as the group (e.g., /users/123 -> users.http)
+	const routeSegment = routePath.split('/').filter(Boolean)[0] || 'root'
+	const testFileName = `${routeSegment}.http`
 	const testFile = vscode.Uri.joinPath(testFolder, testFileName)
+
+	const host = await getHostFromLaunchSettings() || 'http://localhost:5000'
+	const httpRequest = generateHttpRequestTemplate(method.toUpperCase(), routeOrName, host)
 
 	try {
 		await vscode.workspace.fs.stat(testFile)
+		// File exists, append new request at the end
+		const doc = await vscode.workspace.openTextDocument(testFile)
+		const edit = new vscode.WorkspaceEdit()
+		const insertPos = new vscode.Position(doc.lineCount, 0)
+		const separator = `\n### ${methodUpper} ${routePath}\n`
+		edit.insert(testFile, insertPos, separator + httpRequest)
+		await vscode.workspace.applyEdit(edit)
+		await doc.save()
 		vscode.window.showTextDocument(testFile)
 	} catch {
+		// File does not exist, create directory and file
 		await vscode.workspace.fs.createDirectory(testFolder)
-		const host = await getHostFromLaunchSettings() || 'http://localhost:5000'
-		const httpRequest = generateHttpRequestTemplate(method.toUpperCase(), routeOrName, host)
 		await vscode.workspace.fs.writeFile(testFile, Buffer.from(httpRequest, 'utf8'))
 		vscode.window.showTextDocument(testFile)
 	}

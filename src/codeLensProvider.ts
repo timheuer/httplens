@@ -33,19 +33,17 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 		const httpFiles = await vscode.workspace.findFiles('**/*.http')
 
 		function extractMainRoute(path: string): string {
-			// Remove host, variables, and get the first segment (e.g. /add from /add/{num1},{num2} or /add/1,2)
+			// Remove host (http://..., https://..., or {{host}})
 			path = path.replace(/^https?:\/\/[^/]+/, '')
-			path = path.replace(/^{\{[^}]+\}}/, '')
-			if (!path.startsWith('/')) {
-				path = path.replace(/^[^/]+/, '')
-			}
-			path = path.replace(/\/+$/, '')
-			// Get the first segment after the initial slash
-			const match = path.match(/^\/?([^/]+)/)
+			path = path.replace(/^{{[^}]+}}/, '')
+			// Remove leading slashes
+			path = path.replace(/^\/+/, '')
+			// Get the first segment before next slash or end
+			const match = path.match(/^([^\/]+)/)
 			return match ? `/${match[1]}` : '/'
 		}
 
-		async function hasMatchingRequest(method: string, route: string): Promise<{ file?: vscode.Uri, found: boolean }> {
+		async function hasMatchingRequest(method: string, route: string): Promise<{ file?: vscode.Uri, found: boolean, line?: number }> {
 			const routePath = route.startsWith('/') ? route : `/${route}`
 			const methodUpper = method.toUpperCase()
 			const expectedMainRoute = extractMainRoute(routePath)
@@ -59,7 +57,7 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 						if (match && match[1].toUpperCase() === methodUpper) {
 							const matchedMainRoute = extractMainRoute(match[2])
 							if (matchedMainRoute === expectedMainRoute) {
-								return { file, found: true }
+								return { file, found: true, line: i }
 							}
 						}
 					}
@@ -115,7 +113,8 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 			const found = await hasMatchingRequest(method, fullRoute)
 			const title = found.found ? UI_TEXT.goToHttpTest : UI_TEXT.createHttpTest
 			const testFileUri = found.file
-			lenses.push(this.createLens(document, pos, method, fullRoute, 'controller', title, testFileUri))
+			const testFileLine = found.line
+			lenses.push(this.createLens(document, pos, method, fullRoute, 'controller', title, testFileUri, testFileLine))
 		}
 
 		const minimalApiRegex = /app\.(MapGet|MapPost|MapPut|MapDelete|MapPatch)\s*\(([^,]+),/g
@@ -126,7 +125,8 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 			const found = await hasMatchingRequest(method, route)
 			const title = found.found ? UI_TEXT.goToHttpTest : UI_TEXT.createHttpTest
 			const testFileUri = found.file
-			lenses.push(this.createLens(document, pos, method, route, 'minimal', title, testFileUri))
+			const testFileLine = found.line
+			lenses.push(this.createLens(document, pos, method, route, 'minimal', title, testFileUri, testFileLine))
 		}
 
 		return lenses
@@ -139,12 +139,13 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 		routeOrName: string,
 		type: 'controller' | 'minimal',
 		title: string,
-		testFileUri?: vscode.Uri
+		testFileUri?: vscode.Uri,
+		testFileLine?: number
 	): vscode.CodeLens {
 		return new vscode.CodeLens(new vscode.Range(pos, pos), {
 			title,
 			command: 'httplens.handleHttpTest',
-			arguments: [document.uri, method, routeOrName, type, testFileUri]
+			arguments: [document.uri, method, routeOrName, type, testFileUri, testFileLine]
 		})
 	}
 }

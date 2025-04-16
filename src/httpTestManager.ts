@@ -12,28 +12,44 @@ function extractNormalizedPath(rawPath: string): string {
 	return path || '/'
 }
 
-export async function handleHttpTestCommand(uri: vscode.Uri, method: string, routeOrName: string, type: 'controller' | 'minimal', testFileUri?: vscode.Uri) {
-	if (testFileUri) {
-		const doc = await vscode.workspace.openTextDocument(testFileUri)
-		const editor = await vscode.window.showTextDocument(doc)
-		const routePath = routeOrName.startsWith('/') ? routeOrName : `/${routeOrName}`
-		const methodUpper = method.toUpperCase()
-		for (let i = 0; i < doc.lineCount; i++) {
-			const line = doc.lineAt(i).text
-			const match = line.match(/^(GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)(?:\s|$)/i)
-			if (match && match[1].toUpperCase() === methodUpper) {
-				const matchedPath = extractNormalizedPath(match[2])
-				const expectedPath = extractNormalizedPath(routePath)
-				if (matchedPath === expectedPath) {
-					const range = doc.lineAt(i).range
-					editor.revealRange(range, vscode.TextEditorRevealType.InCenter)
-					editor.selection = new vscode.Selection(range.start, range.end)
-					return
-				}
-			}
-		}
-		return
-	}
+export async function handleHttpTestCommand(
+    uri: vscode.Uri,
+    method: string,
+    routeOrName: string,
+    type: 'controller' | 'minimal',
+    testFileUri?: vscode.Uri,
+    testFileLine?: number // <-- add this
+) {
+    if (testFileUri) {
+        const doc = await vscode.workspace.openTextDocument(testFileUri)
+        const editor = await vscode.window.showTextDocument(doc)
+        if (typeof testFileLine === 'number') {
+            // Go directly to the matched line
+            const range = doc.lineAt(testFileLine).range
+            editor.revealRange(range, vscode.TextEditorRevealType.InCenter)
+            editor.selection = new vscode.Selection(range.start, range.end)
+            return
+        }
+
+        // Fallback to existing logic
+        const routePath = routeOrName.startsWith('/') ? routeOrName : `/${routeOrName}`
+        const methodUpper = method.toUpperCase()
+        for (let i = 0; i < doc.lineCount; i++) {
+            const line = doc.lineAt(i).text
+            const match = line.match(/^(GET|POST|PUT|DELETE|PATCH)\s+([^\s]+)(?:\s|$)/i)
+            if (match && match[1].toUpperCase() === methodUpper) {
+                const matchedPath = extractNormalizedPath(match[2])
+                const expectedPath = extractNormalizedPath(routePath)
+                if (matchedPath === expectedPath) {
+                    const range = doc.lineAt(i).range
+                    editor.revealRange(range, vscode.TextEditorRevealType.InCenter)
+                    editor.selection = new vscode.Selection(range.start, range.end)
+                    return
+                }
+            }
+        }
+        return
+    }
 
 	// Search all .http files in the workspace for a matching request
 	const httpFiles = await vscode.workspace.findFiles('**/*.http')

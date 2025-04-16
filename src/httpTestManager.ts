@@ -1,4 +1,4 @@
-import * as vscode from 'vscode';
+import * as vscode from 'vscode'
 
 function extractNormalizedPath(rawPath: string): string {
 	// Remove http(s)://host, {{variable}}, or anything before first /

@@ -1,10 +1,10 @@
-import * as vscode from 'vscode';
+import * as vscode from 'vscode'
 
 // Localizable UI constants
 export const UI_TEXT = {
 	createHttpTest: 'Create HTTP Test',
 	goToHttpTest: 'Go to HTTP Test',
-};
+}
 
 export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 	private onDidChangeCodeLensesEmitter = new vscode.EventEmitter<void>()

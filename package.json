@@ -37,7 +37,8 @@
     "lint": "eslint src",
     "test": "vscode-test",
     "deploy": "vsce publish",
-    "package": "npm run compile && vsce package"
+    "package": "npm run compile && vsce package",
+    "format": "eslint --fix --ext .ts src"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

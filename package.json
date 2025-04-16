@@ -23,7 +23,8 @@
     "Testing"
   ],
   "activationEvents": [
-    "onLanguage:csharp"
+    "onLanguage:csharp",
+    "onLanguage:http"
   ],
   "main": "./out/extension.js",
   "contributes": {

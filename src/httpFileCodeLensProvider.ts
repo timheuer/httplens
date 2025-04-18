@@ -1,4 +1,5 @@
 import * as vscode from 'vscode'
+import { UI_STRINGS } from './strings'
 
 export class HttpFileCodeLensProvider implements vscode.CodeLensProvider {
 	async provideCodeLenses(document: vscode.TextDocument, token: vscode.CancellationToken): Promise<vscode.CodeLens[]> {
@@ -15,7 +16,7 @@ export class HttpFileCodeLensProvider implements vscode.CodeLensProvider {
 				// Add a CodeLens above this line
 				const pos = new vscode.Position(i, 0)
 				lenses.push(new vscode.CodeLens(new vscode.Range(pos, pos), {
-					title: 'Go to Code',
+					title: UI_STRINGS.goToCode,
 					command: 'httplens.goToCodeFromHttp',
 					arguments: [document.uri, method, route],
 				}))

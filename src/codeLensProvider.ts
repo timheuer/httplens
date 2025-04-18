@@ -1,10 +1,5 @@
 import * as vscode from 'vscode'
-
-// Localizable UI constants
-export const UI_TEXT = {
-	createHttpTest: 'Create HTTP Test',
-	goToHttpTest: 'Go to HTTP Test',
-}
+import { UI_STRINGS } from './strings'
 
 export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 	private onDidChangeCodeLensesEmitter = new vscode.EventEmitter<void>()
@@ -111,7 +106,7 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 			if (!fullRoute.startsWith('/')) { fullRoute = '/' + fullRoute }
 			const pos = document.positionAt(match.index)
 			const found = await hasMatchingRequest(method, fullRoute)
-			const title = found.found ? UI_TEXT.goToHttpTest : UI_TEXT.createHttpTest
+			const title = found.found ? UI_STRINGS.goToHttpTest : UI_STRINGS.createHttpTest
 			const testFileUri = found.file
 			const testFileLine = found.line
 			lenses.push(this.createLens(document, pos, method, fullRoute, 'controller', title, testFileUri, testFileLine))
@@ -123,7 +118,7 @@ export class HttpTestCodeLensProvider implements vscode.CodeLensProvider {
 			const route = match[2].trim().replace(/['"`]/g, '')
 			const pos = document.positionAt(match.index)
 			const found = await hasMatchingRequest(method, route)
-			const title = found.found ? UI_TEXT.goToHttpTest : UI_TEXT.createHttpTest
+			const title = found.found ? UI_STRINGS.goToHttpTest : UI_STRINGS.createHttpTest
 			const testFileUri = found.file
 			const testFileLine = found.line
 			lenses.push(this.createLens(document, pos, method, route, 'minimal', title, testFileUri, testFileLine))
